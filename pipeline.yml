@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+file:
+  - source: /
+    destination: /home/ec2-user/playwright
+hooks:
+  StopTesting:
+    - location: script/stop_test.sh
+      timeout: 300
+      runas: ec2-user
+  BeforeInstall:
+    - location: script/before_install.sh
+      timeout: 300
+      runas: ec2-user
+  StartTesting:
+    - location: script/start_test.sh
+      timeout: 300
+      runas: ec2-user      
