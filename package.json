@@ -14,7 +14,7 @@
     "test_all_headed": "npx playwright test --workers=1 --headed",
     "test_login_chrome_headless": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Chromium'",
     "test_login_chrome": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Chromium' --headed",
-    "test_pro_chrome": "npx playwright test tcProgram.spec.ts  --workers=1 --project='Desktop Chromium' --headed",
+    "test_pro_chrome": "npx playwright test tcProgram.spec.ts  --workers=1 --project='Desktop Chromium'",
     "test_login_ff": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Firefox'",
     "test_login_safari": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Safari'"
   },

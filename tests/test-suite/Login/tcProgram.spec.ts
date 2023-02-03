@@ -11,7 +11,7 @@ let programPage: ProgramPage;
 
 test.beforeAll(async ({ browser }) => {
     context = await browser.newContext()
-    context.grantPermissions(['microphone', 'camera']),
+    // context.grantPermissions(['microphone', 'camera']),
     page = await context.newPage();
     programPage = new ProgramPage(page);
     console.log(`Example app listening on port ${process.env.PORT}!`);
@@ -33,6 +33,7 @@ test('open newtab', async () => {
     ])
     console.log(await page.url());
     console.log(await newPage.url())
+    await newPage.waitForTimeout(2000) 
     await newPage.click('[aria-label="Settings"]')
     const allPages = context.pages();
     await newPage.waitForTimeout(3000) 
@@ -41,7 +42,7 @@ test('open newtab', async () => {
     await page.click('[class="fas fa-search"]')
     await page.locator('[class="form-search"]').waitFor({state:'visible'})
     await page.fill('[class="form-search"]','test')
-    await newPage.waitForTimeout(5000) 
+    await newPage.waitForTimeout(2000) 
 })
 
 
