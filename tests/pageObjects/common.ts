@@ -4,7 +4,7 @@ import { delay, compareDate } from '../test_config/utils';
 
 const selectors = {
     btnSearch: '//button[@type="submit" and text()="Search"]',
-    txtNoData: '//h5[text()="No Data"]',   
+    txtNoData: '//h5[text()="No Data"]',
 };
 
 class Common {
