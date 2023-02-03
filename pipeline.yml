@@ -4,7 +4,7 @@ file:
   - source: /
     destination: /home/ec2-user/playwright
 hooks:
-  StopTesting:
+  ApplicationStop:
     - location: script/stop_test.sh
       timeout: 300
       runas: ec2-user
@@ -12,7 +12,7 @@ hooks:
     - location: script/before_install.sh
       timeout: 300
       runas: ec2-user
-  StartTesting:
+  ApplicationStart:
     - location: script/start_test.sh
       timeout: 300
       runas: ec2-user      
