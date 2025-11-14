@@ -137,13 +137,13 @@ pipeline {
                 }
             }
         }
-        
+
         // ====================================================================
         // Stage 2: Setup Environment & Dependencies
         // ====================================================================
 
         stage('Docker Build') {
-            steps
+            steps{
                 script {
                     echo "╔════════════════════════════════════════════════╗"
                     echo "║  Stage: Setup Environment & Install Dependencies ║"
@@ -157,6 +157,7 @@ pipeline {
                     cd Metis_Ui_Playwright/ && ./docker.sh build
                     cd Metis_Ui_Playwright/ && ./docker.sh run
                 '''
+            }
         }
 
         // ====================================================================
