@@ -14,7 +14,7 @@ pipeline {
     environment {
         NODE_ENV = 'test'
         GITHUB_REPO = 'https://github.com/giauthe/Playwright_Web_Demo.git'
-        GITHUB_BRANCH = 'main'
+        GITHUB_BRANCH = 'develop'
         PROJECT_NAME = 'Playwright_Web_Demo'
         WORKSPACE_PATH = "${WORKSPACE}"
         TEST_TIMEOUT = '60'
