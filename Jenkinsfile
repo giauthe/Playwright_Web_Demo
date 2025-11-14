@@ -185,8 +185,8 @@ pipeline {
                 sh '''
                     echo "Node.js version:"
                     ls -l
-                    docker.sh build
-                    docker.sh run
+                    ./docker.sh build
+                    ./docker.sh run
                 '''
             }
         }
@@ -208,8 +208,8 @@ pipeline {
                 }
                 
                 sh '''
-                    cd Metis_Ui_Playwright/ && ./docker.sh test
-                    cd Metis_Ui_Playwright/ && ./docker.sh results
+                    ./docker.sh test
+                    ./docker.sh results
                 '''
             }
         }
