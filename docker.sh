@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IMAGE_NAME=playwright_metis
+IMAGE_NAME=playwright_demo
 
 err() {
     echo $* >&2

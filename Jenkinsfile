@@ -185,6 +185,8 @@ pipeline {
                 sh '''
                     echo "Node.js version:"
                     ls -l
+                    docker --version
+                    echo $PATH
                     chmod +x ./docker.sh
                     ./docker.sh build
                     ./docker.sh run
