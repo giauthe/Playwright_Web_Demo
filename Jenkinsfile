@@ -26,10 +26,7 @@ pipeline {
         TEST_RESULTS_PATH = 'test-results'
         PLAYWRIGHT_REPORT_PATH = 'playwright-report'
         ALLURE_RESULTS_PATH = 'allure-results'
-        
-        // Docker Configuration
-        DOCKER_IMAGE = "mcr.microsoft.com/playwright:v1.40.0-noble"
-        DOCKER_REGISTRY = "docker.io"
+        PATH = "/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Users/macbook/.docker/bin"
     }
 
     // ========================================================================
@@ -185,6 +182,7 @@ pipeline {
                 sh '''
                     echo "Node.js version:"
                     ls -l
+                    echo WORKSPACE_PATH
                     echo $PATH
                     docker --version
                 
