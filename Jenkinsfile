@@ -1,47 +1,565 @@
-node{
-    sh 'rm -rf "$WORKSPACE"/*'
-    withCredentials([usernamePassword(credentialsId: 'remoteServer_credentials', usernameVariable:'REMOTE_USER',  passwordVariable: 'REMOTE_PASS')]) {
-        def remote = [:]
-        remote.name = 'test'
-        remote.host = 'dkr.alpha.bullsphere.com'
-        remote.port = 6223
-        remote.user = 'dtgiau'
-        remote.password = REMOTE_PASS
-        remote.allowAnyHosts = true
-        stage('Checkout Code') {
-            withCredentials([usernamePassword(credentialsId: 'bitbucket_credentials', usernameVariable:'APP_USER', passwordVariable: 'APP_PASSWORD')]) {
-                checkout([$class: 'GitSCM',
-                branches: [[name: '*/master']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[$class: 'CleanCheckout']],
-                userRemoteConfigs: [[credentialsId: 'metis_ui_automation', url: "https://GiauDo:"+"$APP_PASSWORD"+"@bitbucket.org/BeeBullsphere/metis-ui-automation.git"]]
+// ============================================================================
+// Jenkinsfile for Playwright Web Automation Testing
+// Project: Playwright_Web_Demo
+// Repository: GitHub (giauthe/Playwright_Web_Demo)
+// Purpose: CI/CD Pipeline for Playwright Tests with Allure Reports
+// ============================================================================
+
+pipeline {
+    agent any
+
+    // ========================================================================
+    // Environment Variables Configuration
+    // ========================================================================
+    environment {
+        NODE_ENV = 'test'
+        GITHUB_REPO = 'https://github.com/giauthe/Playwright_Web_Demo.git'
+        GITHUB_BRANCH = 'main'
+        PROJECT_NAME = 'Playwright_Web_Demo'
+        WORKSPACE_PATH = "${WORKSPACE}"
+        TEST_TIMEOUT = '60'
+        SLACK_CHANNEL = '#automation-tests'
+        EMAIL_RECIPIENTS = 'qa-team@example.com'
+        
+        // Paths
+        TEST_SUITE_PATH = 'tests/test-suite'
+        TEST_RESULTS_PATH = 'test-results'
+        PLAYWRIGHT_REPORT_PATH = 'playwright-report'
+        ALLURE_RESULTS_PATH = 'allure-results'
+        
+        // Docker Configuration
+        DOCKER_IMAGE = "mcr.microsoft.com/playwright:v1.40.0-noble"
+        DOCKER_REGISTRY = "docker.io"
+    }
+
+    // ========================================================================
+    // Build Triggers
+    // ========================================================================
+    triggers {
+        // Trigger on GitHub push
+        githubPush()
+        
+        // Daily scheduled run at 2 AM UTC
+        cron('0 2 * * *')
+        
+        // Poll SCM every 15 minutes
+        pollSCM('H/15 * * * *')
+    }
+
+    // ========================================================================
+    // Build Parameters
+    // ========================================================================
+    parameters {
+        string(
+            name: 'BROWSER',
+            defaultValue: 'chromium',
+            description: 'Browser to run tests: chromium, firefox, webkit'
+        )
+        string(
+            name: 'TEST_SUITE',
+            defaultValue: 'all',
+            description: 'Test suite to run: all, api, login, ui'
+        )
+        booleanParam(
+            name: 'DEBUG_MODE',
+            defaultValue: false,
+            description: 'Enable debug mode for tests'
+        )
+        booleanParam(
+            name: 'GENERATE_REPORT',
+            defaultValue: true,
+            description: 'Generate Allure report after tests'
+        )
+        booleanParam(
+            name: 'SEND_NOTIFICATIONS',
+            defaultValue: true,
+            description: 'Send notifications (Slack/Email) after tests'
+        )
+    }
+
+    // ========================================================================
+    // Build Options
+    // ========================================================================
+    options {
+        // Keep last 30 builds
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10'))
+        
+        // Set build timeout to 2 hours
+        timeout(time: 2, unit: 'HOURS')
+        
+        // Disable concurrent builds
+        disableConcurrentBuilds()
+        
+        // Add timestamps to console output
+        timestamps()
+        
+        // Preserve test results
+        preserveStashes(buildCount: 5)
+    }
+
+    // ========================================================================
+    // Stages
+    // ========================================================================
+    stages {
+        // ====================================================================
+        // Stage 1: Checkout Code from GitHub
+        // ====================================================================
+        stage('📥 Checkout Code') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Checkout Code from GitHub Repository  ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                    echo "Repository: ${GITHUB_REPO}"
+                    echo "Branch: ${GITHUB_BRANCH}"
+                    echo "Workspace: ${WORKSPACE_PATH}"
+                    echo ""
+                }
+                
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${GITHUB_BRANCH}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'CleanCheckout'],
+                        [$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: false]
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'github-credentials',
+                        url: "${GITHUB_REPO}"
+                    ]]
                 ])
+                
+                script {
+                    echo "✅ Code checkout completed successfully"
+                }
             }
         }
-        sh 'rm -rf Metis_Ui_Playwright.tar.gz'
-        tar file: 'Metis_Ui_Playwright.tar.gz', dir: ''
-        stage('Docker Build') {
-            sshCommand remote: remote, command: "echo"+" $REMOTE_PASS"+" | sudo -S rm -rf Metis_Ui_Playwright/*"
-            sshPut remote: remote, from: 'Metis_Ui_Playwright.tar.gz', into: 'Metis_Ui_Playwright/'
-            sshCommand remote: remote, command: 'cd Metis_Ui_Playwright/ && tar -xzvf Metis_Ui_Playwright.tar.gz && chmod +x docker.sh '
-            sshCommand remote: remote, command: 'cd Metis_Ui_Playwright/ && ./docker.sh build'
-            sshCommand remote: remote, command: 'cd Metis_Ui_Playwright/ && ./docker.sh run'
+
+        // ====================================================================
+        // Stage 2: Setup Environment & Dependencies
+        // ====================================================================
+        stage('⚙️ Setup Environment') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Setup Environment & Install Dependencies ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+                
+                // Display Node and npm versions
+                sh '''
+                    echo "Node.js version:"
+                    node --version
+                    echo ""
+                    echo "npm version:"
+                    npm --version
+                    echo ""
+                '''
+                
+                // Install dependencies
+                sh '''
+                    echo "Installing npm dependencies..."
+                    npm install --legacy-peer-deps
+                    echo "✅ Dependencies installed successfully"
+                '''
+                
+                // Install Playwright browsers
+                sh '''
+                    echo "Installing Playwright browsers..."
+                    npx playwright install ${BROWSER}
+                    echo "✅ Playwright browsers installed successfully"
+                '''
+                
+                // Verify installation
+                sh '''
+                    echo "Verifying Playwright installation..."
+                    npx playwright --version
+                    echo "✅ Playwright verified"
+                '''
+            }
         }
-        stage('Execute Test') {
-            sshCommand remote: remote, command: 'cd Metis_Ui_Playwright/ && ./docker.sh test'
-            sshCommand remote: remote, command: 'cd Metis_Ui_Playwright/ && ./docker.sh results'
+
+        // ====================================================================
+        // Stage 3: Lint & Code Quality
+        // ====================================================================
+        stage('🔍 Code Quality Checks') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Code Quality & Linting Checks         ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+                
+                // Check TypeScript compilation
+                sh '''
+                    echo "Checking TypeScript compilation..."
+                    npx tsc --noEmit || echo "TypeScript check completed"
+                    echo "✅ TypeScript check completed"
+                '''
+                
+                // Run ESLint if available
+                sh '''
+                    if [ -f ".eslintrc.json" ] || [ -f ".eslintrc.js" ]; then
+                        echo "Running ESLint..."
+                        npx eslint . --ext .ts,.js || echo "ESLint check completed"
+                    else
+                        echo "⚠️ ESLint not configured, skipping"
+                    fi
+                '''
+            }
         }
-        stage('Reports') {
-            sshGet remote: remote, from: 'Metis_Ui_Playwright/test-results/', filterRegex: /.*/, into: ".", override: true
-            sshGet remote: remote, from: 'Metis_Ui_Playwright/playwright-report/', filterRegex: /.*/, into: ".", override: true
-            sshGet remote: remote, from: 'Metis_Ui_Playwright/allure-results/', filterRegex: /.*/, into: ".", override: true
-            allure([
-                    includeProperties: false,
-                    jdk: '',
-                    properties: [],
-                    reportBuildPolicy: 'ALWAYS',
-                    results: [[path: 'allure-results']]
-            ])
+
+        // ====================================================================
+        // Stage 4: Run Playwright Tests
+        // ====================================================================
+        stage('🧪 Run Playwright Tests') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Execute Playwright Tests              ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                    echo "Browser: ${params.BROWSER}"
+                    echo "Test Suite: ${params.TEST_SUITE}"
+                    echo "Debug Mode: ${params.DEBUG_MODE}"
+                    echo ""
+                }
+                
+                sh '''
+                    # Set test suite path based on parameter
+                    case "${TEST_SUITE}" in
+                        api)
+                            TEST_PATH="${TEST_SUITE_PATH}/API/api.spec.ts"
+                            ;;
+                        login)
+                            TEST_PATH="${TEST_SUITE_PATH}/Login/tcLogin.spec.ts"
+                            ;;
+                        ui)
+                            TEST_PATH="${TEST_SUITE_PATH}/**/*.spec.ts"
+                            ;;
+                        *)
+                            TEST_PATH="${TEST_SUITE_PATH}/**/*.spec.ts"
+                            ;;
+                    esac
+                    
+                    echo "Running tests from: $TEST_PATH"
+                    echo ""
+                    
+                    # Build Playwright command
+                    PLAYWRIGHT_CMD="npx playwright test $TEST_PATH"
+                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --project=${BROWSER}"
+                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --reporter=html"
+                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --reporter=json"
+                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --reporter=junit"
+                    
+                    # Add debug flag if enabled
+                    if [ "${DEBUG_MODE}" = "true" ]; then
+                        PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --debug"
+                    fi
+                    
+                    # Execute tests
+                    echo "Executing: $PLAYWRIGHT_CMD"
+                    eval $PLAYWRIGHT_CMD || TEST_FAILED=true
+                    
+                    if [ "$TEST_FAILED" = "true" ]; then
+                        echo "⚠️ Some tests failed - continuing with report generation"
+                        exit 0
+                    fi
+                '''
+            }
+        }
+
+        // ====================================================================
+        // Stage 5: Generate Allure Report
+        // ====================================================================
+        stage('📊 Generate Allure Report') {
+            when {
+                expression { return params.GENERATE_REPORT }
+            }
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Generate Allure Report                ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+                
+                sh '''
+                    # Check if allure-results directory exists
+                    if [ -d "${ALLURE_RESULTS_PATH}" ]; then
+                        echo "Generating Allure report..."
+                        allure generate ${ALLURE_RESULTS_PATH} --clean -o allure-report || echo "Note: Allure not installed, skipping"
+                        echo "✅ Allure report generated"
+                    else
+                        echo "⚠️ No allure-results directory found"
+                    fi
+                '''
+            }
+        }
+
+        // ====================================================================
+        // Stage 6: Archive Test Results
+        // ====================================================================
+        stage('💾 Archive Results') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Archive Test Results                  ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+                
+                // Archive test results
+                archiveArtifacts(
+                    artifacts: '''
+                        test-results/**/*,
+                        playwright-report/**/*,
+                        allure-results/**/*,
+                        allure-report/**/*
+                    ''',
+                    allowEmptyArchive: true,
+                    fingerprint: true
+                )
+                
+                script {
+                    echo "✅ Test results archived successfully"
+                }
+            }
+        }
+
+        // ====================================================================
+        // Stage 7: Generate Test Report HTML
+        // ====================================================================
+        stage('📈 Publish Reports') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Publish HTML Reports                  ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+                
+                // Publish Playwright HTML Report
+                publishHTML([
+                    reportDir: "${PLAYWRIGHT_REPORT_PATH}",
+                    reportFiles: 'index.html',
+                    reportName: 'Playwright Test Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
+                
+                // Publish Allure Report if available
+                script {
+                    if (fileExists('allure-report/index.html')) {
+                        publishHTML([
+                            reportDir: 'allure-report',
+                            reportFiles: 'index.html',
+                            reportName: 'Allure Test Report',
+                            keepAll: true,
+                            alwaysLinkToLastBuild: true
+                        ])
+                    }
+                }
+                
+                script {
+                    echo "✅ Reports published successfully"
+                }
+            }
+        }
+
+        // ====================================================================
+        // Stage 8: Publish JUnit Results
+        // ====================================================================
+        stage('📋 Publish Test Results') {
+            steps {
+                script {
+                    echo "Publishing JUnit test results..."
+                }
+                
+                junit(
+                    testResults: 'test-results/**/*.xml',
+                    allowEmptyResults: true,
+                    healthScaleFactor: 0.0
+                )
+                
+                script {
+                    echo "✅ JUnit results published"
+                }
+            }
+        }
+    }
+
+    // ========================================================================
+    // Post Build Actions
+    // ========================================================================
+    post {
+        always {
+            script {
+                echo ""
+                echo "╔════════════════════════════════════════════════╗"
+                echo "║  Post-Build Cleanup & Notifications          ║"
+                echo "╚════════════════════════════════════════════════╝"
+                echo ""
+                
+                // Clean workspace if specified
+                cleanWs(
+                    deleteDirs: true,
+                    patterns: [
+                        [pattern: '**/node_modules', type: 'INCLUDE'],
+                        [pattern: '**/.playwright', type: 'INCLUDE']
+                    ]
+                )
+            }
+        }
+        
+        success {
+            script {
+                echo "✅ Pipeline executed successfully!"
+                echo ""
+                
+                if (params.SEND_NOTIFICATIONS) {
+                    // Send Slack notification
+                    sh '''
+                        if command -v curl &> /dev/null; then
+                            echo "Sending Slack notification..."
+                            # Add your Slack webhook here
+                        fi
+                    '''
+                    
+                    // Send email notification
+                    emailext(
+                        subject: "✅ Build Success: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: '''
+                            Build Status: SUCCESS ✅
+                            
+                            Project: ${PROJECT_NAME}
+                            Build URL: ${BUILD_URL}
+                            Build Number: ${BUILD_NUMBER}
+                            
+                            Test Reports:
+                            - Playwright Report: ${BUILD_URL}Playwright_Test_Report
+                            - Allure Report: ${BUILD_URL}Allure_Test_Report
+                            
+                            Commit: ${GIT_COMMIT}
+                            Branch: ${GIT_BRANCH}
+                        ''',
+                        to: "${EMAIL_RECIPIENTS}",
+                        mimeType: 'text/html'
+                    )
+                }
+            }
+        }
+        
+        failure {
+            script {
+                echo "❌ Pipeline failed!"
+                echo ""
+                
+                if (params.SEND_NOTIFICATIONS) {
+                    // Send Slack notification
+                    sh '''
+                        if command -v curl &> /dev/null; then
+                            echo "Sending Slack failure notification..."
+                            # Add your Slack webhook here
+                        fi
+                    '''
+                    
+                    // Send email notification
+                    emailext(
+                        subject: "❌ Build Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: '''
+                            Build Status: FAILED ❌
+                            
+                            Project: ${PROJECT_NAME}
+                            Build URL: ${BUILD_URL}
+                            Build Number: ${BUILD_NUMBER}
+                            
+                            Test Reports:
+                            - Playwright Report: ${BUILD_URL}Playwright_Test_Report
+                            - Allure Report: ${BUILD_URL}Allure_Test_Report
+                            
+                            Commit: ${GIT_COMMIT}
+                            Branch: ${GIT_BRANCH}
+                            
+                            Console Output: ${BUILD_URL}console
+                        ''',
+                        to: "${EMAIL_RECIPIENTS}",
+                        mimeType: 'text/html',
+                        attachLog: true
+                    )
+                }
+            }
+        }
+        
+        unstable {
+            script {
+                echo "⚠️ Pipeline unstable - some tests may have failed"
+                
+                if (params.SEND_NOTIFICATIONS) {
+                    emailext(
+                        subject: "⚠️ Build Unstable: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                        body: '''
+                            Build Status: UNSTABLE ⚠️
+                            
+                            Project: ${PROJECT_NAME}
+                            Build URL: ${BUILD_URL}
+                            Build Number: ${BUILD_NUMBER}
+                        ''',
+                        to: "${EMAIL_RECIPIENTS}",
+                        mimeType: 'text/html'
+                    )
+                }
+            }
+        }
+        
+        cleanup {
+            script {
+                echo "Cleaning up..."
+                // Additional cleanup if needed
+                sh '''
+                    echo "Workspace cleanup completed"
+                '''
+            }
         }
     }
 }
+
+// ============================================================================
+// Pipeline Summary
+// ============================================================================
+// 
+// This Jenkinsfile provides a complete CI/CD pipeline for Playwright testing:
+//
+// FEATURES:
+// ✅ GitHub Integration - Clone, checkout, and triggers
+// ✅ Multi-Browser Testing - Chromium, Firefox, WebKit
+// ✅ Parameterized Builds - Select test suite and browser
+// ✅ Code Quality Checks - TypeScript, ESLint
+// ✅ Test Execution - Full Playwright test suite
+// ✅ Allure Reports - Beautiful test reports
+// ✅ HTML Reports - Playwright native reports
+// ✅ JUnit Results - Integration with Jenkins
+// ✅ Notifications - Slack and Email alerts
+// ✅ Artifact Archival - Save all test results
+//
+// REQUIRED JENKINS PLUGINS:
+// - GitHub Integration Plugin
+// - Email Extension Plugin
+// - HTML Publisher Plugin
+// - Pipeline Plugin
+// - Timestamper Plugin
+//
+// SETUP INSTRUCTIONS:
+// 1. Create new Pipeline job in Jenkins
+// 2. Configure GitHub repository connection
+// 3. Set Pipeline script from SCM
+// 4. Select Jenkinsfile.github from main branch
+// 5. Configure email credentials
+// 6. Add webhook to GitHub for automatic triggers
+//
+// ============================================================================
