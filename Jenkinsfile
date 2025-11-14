@@ -139,29 +139,7 @@ pipeline {
         }
 
         // ====================================================================
-        // Stage 2: Setup Environment & Dependencies
-        // ====================================================================
-
-        stage('Docker Build') {
-            steps{
-                script {
-                    echo "╔════════════════════════════════════════════════╗"
-                    echo "║  Stage: Setup Environment & Install Dependencies ║"
-                    echo "╚════════════════════════════════════════════════╝"
-                    echo ""
-                }
-
-                sh '''
-                    echo "Node.js version:"
-                    ls -l
-                    cd Metis_Ui_Playwright/ && ./docker.sh build
-                    cd Metis_Ui_Playwright/ && ./docker.sh run
-                '''
-            }
-        }
-
-        // ====================================================================
-        // Stage 3: Lint & Code Quality
+        // Stage 2: Lint & Code Quality
         // ====================================================================
         stage('🔍 Code Quality Checks') {
             steps {
@@ -192,6 +170,28 @@ pipeline {
         }
 
         // ====================================================================
+        // Stage 3: Setup Environment & Dependencies
+        // ====================================================================
+
+        stage('Docker Build') {
+            steps{
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Setup Environment & Install Dependencies ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+
+                sh '''
+                    echo "Node.js version:"
+                    ls -l
+                    docker.sh build
+                    docker.sh run
+                '''
+            }
+        }
+
+        // ====================================================================
         // Stage 4: Run Playwright Tests
         // ====================================================================
         stage('🧪 Run Playwright Tests') {
@@ -208,45 +208,8 @@ pipeline {
                 }
                 
                 sh '''
-                    # Set test suite path based on parameter
-                    case "${TEST_SUITE}" in
-                        api)
-                            TEST_PATH="${TEST_SUITE_PATH}/API/api.spec.ts"
-                            ;;
-                        login)
-                            TEST_PATH="${TEST_SUITE_PATH}/Login/tcLogin.spec.ts"
-                            ;;
-                        ui)
-                            TEST_PATH="${TEST_SUITE_PATH}/**/*.spec.ts"
-                            ;;
-                        *)
-                            TEST_PATH="${TEST_SUITE_PATH}/**/*.spec.ts"
-                            ;;
-                    esac
-                    
-                    echo "Running tests from: $TEST_PATH"
-                    echo ""
-                    
-                    # Build Playwright command
-                    PLAYWRIGHT_CMD="npx playwright test $TEST_PATH"
-                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --project=${BROWSER}"
-                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --reporter=html"
-                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --reporter=json"
-                    PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --reporter=junit"
-                    
-                    # Add debug flag if enabled
-                    if [ "${DEBUG_MODE}" = "true" ]; then
-                        PLAYWRIGHT_CMD="$PLAYWRIGHT_CMD --debug"
-                    fi
-                    
-                    # Execute tests
-                    echo "Executing: $PLAYWRIGHT_CMD"
-                    eval $PLAYWRIGHT_CMD || TEST_FAILED=true
-                    
-                    if [ "$TEST_FAILED" = "true" ]; then
-                        echo "⚠️ Some tests failed - continuing with report generation"
-                        exit 0
-                    fi
+                    cd Metis_Ui_Playwright/ && ./docker.sh test
+                    cd Metis_Ui_Playwright/ && ./docker.sh results
                 '''
             }
         }
