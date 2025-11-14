@@ -137,50 +137,26 @@ pipeline {
                 }
             }
         }
-
+        
         // ====================================================================
         // Stage 2: Setup Environment & Dependencies
         // ====================================================================
-        stage('⚙️ Setup Environment') {
-            steps {
+
+        stage('Docker Build') {
+            steps
                 script {
                     echo "╔════════════════════════════════════════════════╗"
                     echo "║  Stage: Setup Environment & Install Dependencies ║"
                     echo "╚════════════════════════════════════════════════╝"
                     echo ""
                 }
-                
-                // Display Node and npm versions
+
                 sh '''
                     echo "Node.js version:"
-                    node --version
-                    echo ""
-                    echo "npm version:"
-                    npm --version
-                    echo ""
+                    ls -l
+                    cd Metis_Ui_Playwright/ && ./docker.sh build
+                    cd Metis_Ui_Playwright/ && ./docker.sh run
                 '''
-                
-                // Install dependencies
-                sh '''
-                    echo "Installing npm dependencies..."
-                    npm install --legacy-peer-deps
-                    echo "✅ Dependencies installed successfully"
-                '''
-                
-                // Install Playwright browsers
-                sh '''
-                    echo "Installing Playwright browsers..."
-                    npx playwright install ${BROWSER}
-                    echo "✅ Playwright browsers installed successfully"
-                '''
-                
-                // Verify installation
-                sh '''
-                    echo "Verifying Playwright installation..."
-                    npx playwright --version
-                    echo "✅ Playwright verified"
-                '''
-            }
         }
 
         // ====================================================================
