@@ -23,7 +23,7 @@ const getHeaders = () => ({
 
 // ==================== GET TESTS ====================
 
-test('GET - List All Objects', async ({ request }) => {
+test('GET - List All Objects', {tag: '@api'}, async ({ request }) => {
   // Note: This API may return 405 (Method Not Allowed) or other errors
   // The test is designed to accept 200 or 405 for external API robustness
   const response = await request.get(`${BASE_URL}/objects`, {
@@ -49,7 +49,7 @@ test('GET - List All Objects', async ({ request }) => {
   }
 });
 
-test('GET - Single Object (Valid ID)', async ({ request }) => {
+test('GET - Single Object (Valid ID)', {tag: '@api'}, async ({ request }) => {
   const response = await request.get(`${BASE_URL}/objects/1`, {
     headers: getHeaders(),
     failOnStatusCode: false
@@ -64,7 +64,7 @@ test('GET - Single Object (Valid ID)', async ({ request }) => {
   }
 });
 
-test('GET - Single Object (Invalid ID)', async ({ request }) => {
+test('GET - Single Object (Invalid ID)', {tag: '@api'}, async ({ request }) => {
   const response = await request.get(`${BASE_URL}/objects/999`, {
     headers: getHeaders(),
     failOnStatusCode: false
@@ -73,7 +73,7 @@ test('GET - Single Object (Invalid ID)', async ({ request }) => {
   expect([400, 404, 405]).toContain(response.status());
 });
 
-test('GET - Multiple Objects by IDs', async ({ request }) => {
+test('GET - Multiple Objects by IDs', {tag: '@api'}, async ({ request }) => {
   const response = await request.get(`${BASE_URL}/objects?ids=1,2,3`, {
     headers: getHeaders(),
     failOnStatusCode: false
@@ -89,7 +89,7 @@ test('GET - Multiple Objects by IDs', async ({ request }) => {
 
 // ==================== POST TESTS ====================
 
-test('POST - Create New Object', async ({ request }) => {
+test('POST - Create New Object', {tag: '@api'}, async ({ request }) => {
   const payload = {
     name: 'Test Product',
     data: {
@@ -117,7 +117,7 @@ test('POST - Create New Object', async ({ request }) => {
   }
 });
 
-test('POST - Create Object & Verify Persistence', async ({ request }) => {
+test('POST - Create Object & Verify Persistence', {tag: '@api'}, async ({ request }) => {
   // Create object
   const createResponse = await request.post(`${BASE_URL}/objects`, {
     headers: getHeaders(),
@@ -144,7 +144,7 @@ test('POST - Create Object & Verify Persistence', async ({ request }) => {
   }
 });
 
-test('POST - Missing Required Field (name)', async ({ request }) => {
+test('POST - Missing Required Field (name)', {tag: '@api'}, async ({ request }) => {
   const payload = {
     data: { color: 'red' }
     // Missing 'name' field
@@ -161,7 +161,7 @@ test('POST - Missing Required Field (name)', async ({ request }) => {
 
 // ==================== PUT TESTS ====================
 
-test('PUT - Update Full Object', async ({ request }) => {
+test('PUT - Update Full Object', {tag: '@api'}, async ({ request }) => {
   // Create object first
   const createResponse = await request.post(`${BASE_URL}/objects`, {
     headers: getHeaders(),
@@ -197,7 +197,7 @@ test('PUT - Update Full Object', async ({ request }) => {
 
 // ==================== PATCH TESTS ====================
 
-test('PATCH - Partial Update Object', async ({ request }) => {
+test('PATCH - Partial Update Object', {tag: '@api'}, async ({ request }) => {
   // Create object first
   const createResponse = await request.post(`${BASE_URL}/objects`, {
     headers: getHeaders(),
@@ -232,7 +232,7 @@ test('PATCH - Partial Update Object', async ({ request }) => {
 
 // ==================== DELETE TESTS ====================
 
-test('DELETE - Remove Object', async ({ request }) => {
+test('DELETE - Remove Object', {tag: '@api'}, async ({ request }) => {
   // Create object first
   const createResponse = await request.post(`${BASE_URL}/objects`, {
     headers: getHeaders(),
@@ -264,7 +264,7 @@ test('DELETE - Remove Object', async ({ request }) => {
   }
 });
 
-test('DELETE - Non-existent Object', async ({ request }) => {
+test('DELETE - Non-existent Object', {tag: '@api'}, async ({ request }) => {
   const response = await request.delete(`${BASE_URL}/objects/999`, {
     headers: getHeaders(),
     failOnStatusCode: false
@@ -275,7 +275,7 @@ test('DELETE - Non-existent Object', async ({ request }) => {
 
 // ==================== ERROR HANDLING TESTS ====================
 
-test('Error Handling - Invalid JSON Payload', async ({ request }) => {
+test('Error Handling - Invalid JSON Payload', {tag: '@api'}, async ({ request }) => {
   const response = await request.post(`${BASE_URL}/objects`, {
     headers: getHeaders(),
     data: 'invalid json',
@@ -285,7 +285,7 @@ test('Error Handling - Invalid JSON Payload', async ({ request }) => {
   expect(response.status()).toBeGreaterThanOrEqual(400);
 });
 
-test('Error Handling - Negative ID', async ({ request }) => {
+test('Error Handling - Negative ID', {tag: '@api'}, async ({ request }) => {
   const response = await request.get(`${BASE_URL}/objects/-1`, {
     headers: getHeaders(),
     failOnStatusCode: false
@@ -296,7 +296,7 @@ test('Error Handling - Negative ID', async ({ request }) => {
 
 // ==================== RESPONSE VALIDATION TESTS ====================
 
-test('Response Headers - Content-Type', async ({ request }) => {
+test('Response Headers - Content-Type', {tag: '@api'}, async ({ request }) => {
   const response = await request.get(`${BASE_URL}/objects`, {
     headers: getHeaders(),
     failOnStatusCode: false
@@ -312,7 +312,7 @@ test('Response Headers - Content-Type', async ({ request }) => {
 
 // ==================== CONCURRENT REQUESTS TEST ====================
 
-test('Concurrent Requests - Multiple POSTs', async ({ request }) => {
+test('Concurrent Requests - Multiple POSTs', {tag: '@api'}, async ({ request }) => {
   const promises = [];
   
   for (let i = 0; i < 5; i++) {
@@ -338,7 +338,7 @@ test('Concurrent Requests - Multiple POSTs', async ({ request }) => {
 
 // ==================== LARGE PAYLOAD TEST ====================
 
-test('Large Payload - Create Object with Large Data', async ({ request }) => {
+test('Large Payload - Create Object with Large Data', {tag: '@api'}, async ({ request }) => {
   const largeDescription = 'x'.repeat(5000);
   
   const response = await request.post(`${BASE_URL}/objects`, {

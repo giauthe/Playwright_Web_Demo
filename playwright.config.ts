@@ -20,7 +20,7 @@ const xrayOptions = {
 const config: PlaywrightTestConfig = {
   // retries: 1,
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined, //Global timeout for the whole test run:
-  workers: process.env.CI ? 0 : 1,
+  workers: process.env.CI ? 0 : 4,
   timeout: 5 * 6 * 1000, // timeout test
   expect: {
     timeout: 15000,  //Default timeout for async expect matchers in milliseconds, defaults to 5000ms./Timeout for each assertion:
@@ -50,32 +50,32 @@ const config: PlaywrightTestConfig = {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
     {
       name: 'Desktop Chromium',
       use: {
         browserName: 'chromium',
       },
     },
-    // {
-    //   name: 'Desktop Safari',
-    //   use: {
-    //     browserName: 'webkit',
-    //   }
-    // },
-    // {
-    //   name: 'Desktop Firefox',
-    //   use: {
-    //     browserName: 'firefox',
-    //   }
-    // },
+    {
+      name: 'Desktop Safari',
+      use: {
+        browserName: 'webkit',
+      }
+    },
+    {
+      name: 'Desktop Firefox',
+      use: {
+        browserName: 'firefox',
+      }
+    },
   ],
   reporter: [
     ['html', { open: 'never' }],

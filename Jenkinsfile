@@ -37,7 +37,7 @@ pipeline {
         githubPush()
         
         // Daily scheduled run at 2 AM UTC
-        cron('0 2 * * *')
+        cron('H 2 * * *')
         
         // Poll SCM every 15 minutes
         pollSCM('H/15 * * * *')

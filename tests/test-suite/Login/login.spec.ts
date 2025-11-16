@@ -25,7 +25,13 @@ test.afterAll(async () => {
     await context.close();
 });
 
-test('login invalid', async () => {
+test('login invalid user', {tag: ['@login', '@ui']}, async () => {
     await loginPage.login(config.USER, config.PASSWORD);
+    await loginPage.verifyLoginInvalid();
+})
+
+
+test('login invalid pass', {tag: ['@login', '@ui']}, async () => {
+    await loginPage.login(config.stg_user, config.stg_password);
     await loginPage.verifyLoginInvalid();
 })
