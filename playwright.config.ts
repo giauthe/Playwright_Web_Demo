@@ -78,7 +78,7 @@ const config: PlaywrightTestConfig = {
     // },
   ],
   reporter: [
-    ['html'],
+    ['html', { open: 'never' }],
     ['line'],
     ['allure-playwright'],
     ['junit', xrayOptions]

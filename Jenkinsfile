@@ -211,10 +211,7 @@ pipeline {
                     echo "Debug Mode: ${params.DEBUG_MODE}"
                     echo ""
                 }
-                // sh '''
-                //     npx playwright test --browser=${BROWSER} --project=${TEST_SUITE} ${DEBUG_MODE:+--debug} --timeout=${TEST_TIMEOUT}000
-                // '''
-                
+                                
                 sh '''
                     ./docker.sh test
                     ./docker.sh results

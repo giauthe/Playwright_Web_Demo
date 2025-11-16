@@ -29,3 +29,9 @@ test-results
 /tests/installation/output/
 /tests/installation/.registry.json
 .cache/
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
