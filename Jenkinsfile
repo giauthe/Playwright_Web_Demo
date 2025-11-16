@@ -113,6 +113,9 @@ pipeline {
                     echo "Workspace: ${WORKSPACE_PATH}"
                     echo ""
                 }
+                sh '''
+                    rm -rf "$WORKSPACE"/*
+                '''
                 
                 checkout([
                     $class: 'GitSCM',
