@@ -13,7 +13,7 @@ usage() {
 clean() {
     IMAGE=$(docker ps -a --filter ancestor=${IMAGE_NAME} --format="{{.ID}}")
 
-    if ! run_test -z "$IMAGE"
+    if ! test -z "$IMAGE"
     then
         docker rm -f $(docker stop ${IMAGE})
         docker rmi -f ${IMAGE_NAME}
