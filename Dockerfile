@@ -1,6 +1,6 @@
 FROM node:18
 
-FROM mcr.microsoft.com/playwright:v1.27.0-focal
+FROM mcr.microsoft.com/playwright:v1.56.0-focal
 
 WORKDIR /automation
 

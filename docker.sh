@@ -11,7 +11,7 @@ usage() {
 }
 
 clean() {
-    IMAGE=$(docker ps -a -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}")
+    IMAGE=$(docker ps -a --filter ancestor=${IMAGE_NAME} --format="{{.ID}}")
 
     if ! test -z "$IMAGE"
     then
