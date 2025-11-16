@@ -281,7 +281,7 @@ pipeline {
         // ====================================================================
         // Stage 7: Publish Test Results
         // ====================================================================
-        stage('📋 Publish Test Results') {
+        stage('📈 Publish Test Results') {
             steps {
                 script {
                     echo "╔════════════════════════════════════════════════╗"
@@ -301,34 +301,28 @@ pipeline {
                 // Publish Allure Report
                 script {
                     echo "Publishing Allure test results..."
+                    try {
+                        allure([
+                            includeProperties: false,
+                            jdk: '',
+                            properties: [],
+                            reportBuildPolicy: 'ALWAYS',
+                            results: [[path: 'allure-results']]
+                        ])
+                        echo "✅ Allure results published"
+                    } catch (Exception e) {
+                        echo "⚠️ Allure report skipped: ${e.message}"
+                    }
                 }
             
-                script {
-                    allure([
-                        includeProperties: false,
-                        jdk: '',
-                        properties: [],
-                        reportBuildPolicy: 'ALWAYS',
-                        results: [[path: 'allure-results']]
-                    ])
-                }
-                
-                script {
-                    echo "✅ Allure results published"
-                }
-            
-                // Publish JUnit Report    
+                // Publish JUnit Report
                 script {
                     echo "Publishing JUnit test results..."
-                    }
-                    
-                junit(
-                    testResults: 'test-results/**/*.xml',
-                    allowEmptyResults: true,
-                    healthScaleFactor: 0.0
-                )
-                
-                script {
+                    junit(
+                        testResults: 'test-results/**/*.xml',
+                        allowEmptyResults: true,
+                        healthScaleFactor: 0.0
+                    )
                     echo "✅ JUnit results published"
                 }
             }
