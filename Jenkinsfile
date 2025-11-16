@@ -69,7 +69,7 @@ pipeline {
         )
         booleanParam(
             name: 'SEND_NOTIFICATIONS',
-            defaultValue: true,
+            defaultValue: false,
             description: 'Send notifications (Slack/Email) after tests'
         )
     }
@@ -174,7 +174,7 @@ pipeline {
         // Stage 3: Setup Environment & Dependencies
         // ====================================================================
 
-        stage('Docker Build') {
+        stage('🔧 Setup Environment & Install Dependencies') {
             steps{
                 script {
                     echo "╔════════════════════════════════════════════════╗"
@@ -279,10 +279,26 @@ pipeline {
         }
 
         // ====================================================================
-        // Stage 7: Publish Allure Results
+        // Stage 7: Publish Test Results
         // ====================================================================
         stage('📋 Publish Test Results') {
             steps {
+                script {
+                    echo "╔════════════════════════════════════════════════╗"
+                    echo "║  Stage: Publish Test Results                   ║"
+                    echo "╚════════════════════════════════════════════════╝"
+                    echo ""
+                }
+                
+                // Publish Playwright HTML Report
+                publishHTML([
+                    reportDir: "${PLAYWRIGHT_REPORT_PATH}",
+                    reportFiles: 'index.html',
+                    reportName: 'Playwright Test Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
+                // Publish Allure Report
                 script {
                     echo "Publishing Allure test results..."
                 }
@@ -299,6 +315,21 @@ pipeline {
                 
                 script {
                     echo "✅ Allure results published"
+                }
+            
+                // Publish JUnit Report    
+                script {
+                    echo "Publishing JUnit test results..."
+                    }
+                    
+                junit(
+                    testResults: 'test-results/**/*.xml',
+                    allowEmptyResults: true,
+                    healthScaleFactor: 0.0
+                )
+                
+                script {
+                    echo "✅ JUnit results published"
                 }
             }
         }
