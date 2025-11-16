@@ -115,6 +115,7 @@ pipeline {
                 }
                 sh '''
                     rm -rf "$WORKSPACE"/*
+                    rm -rf ~/.cache/ms-playwright
                 '''
                 
                 checkout([
@@ -211,7 +212,7 @@ pipeline {
                     echo "Debug Mode: ${params.DEBUG_MODE}"
                     echo ""
                 }
-                                
+
                 sh '''
                     ./docker.sh test
                     ./docker.sh results
