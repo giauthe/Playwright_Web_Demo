@@ -290,14 +290,14 @@ pipeline {
                     echo ""
                 }
                 
-                // Publish Playwright HTML Report
-                publishHTML([
-                    reportDir: "${PLAYWRIGHT_REPORT_PATH}",
-                    reportFiles: 'index.html',
-                    reportName: 'Playwright Test Report',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
+                // // Publish Playwright HTML Report
+                // publishHTML([
+                //     reportDir: "${PLAYWRIGHT_REPORT_PATH}",
+                //     reportFiles: 'index.html',
+                //     reportName: 'Playwright Test Report',
+                //     keepAll: true,
+                //     alwaysLinkToLastBuild: true
+                // ])
                 
                 // Publish Allure Report if available
                 script {
