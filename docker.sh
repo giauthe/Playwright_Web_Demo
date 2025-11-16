@@ -13,7 +13,7 @@ usage() {
 clean() {
     IMAGE=$(docker ps -a --filter ancestor=${IMAGE_NAME} --format="{{.ID}}")
 
-    if ! test -z "$IMAGE"
+    if ! run_test -z "$IMAGE"
     then
         docker rm -f $(docker stop ${IMAGE})
         docker rmi -f ${IMAGE_NAME}
@@ -32,14 +32,14 @@ login() {
     docker exec -i $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}") /bin/bash
 }
 
-test() {
+run_test() {
     docker exec -i -w /automation $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}") bash -c ". /automation/run.sh"
 }
 
 copy_results() {
-    docker cp $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}"):automation/allure-results/ ${PWD}/
-    docker cp $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}"):automation/test-results/ ${PWD}/
-    docker cp $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}"):automation/playwright-report/ ${PWD}/
+    docker cp $(docker ps --filter ancestor=${IMAGE_NAME} --format="{{.ID}}"):automation/allure-results/ ${PWD}/
+    docker cp $(docker ps --filter ancestor=${IMAGE_NAME} --format="{{.ID}}"):automation/test-results/ ${PWD}/
+    docker cp $(docker ps --filter ancestor=${IMAGE_NAME} --format="{{.ID}}"):automation/playwright-report/ ${PWD}/
 }
 
 
@@ -57,7 +57,7 @@ execute() {
             login
             ;;
         test)
-            test
+            run_test
             ;;  
         results)
             copy_results
