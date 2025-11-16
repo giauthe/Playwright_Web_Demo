@@ -279,70 +279,26 @@ pipeline {
         }
 
         // ====================================================================
-        // Stage 7: Generate Test Report HTML
-        // ====================================================================
-        stage('📈 Publish Reports') {
-            steps {
-                script {
-                    echo "╔════════════════════════════════════════════════╗"
-                    echo "║  Stage: Publish HTML Reports                  ║"
-                    echo "╚════════════════════════════════════════════════╝"
-                    echo ""
-                }
-                
-                // Publish Playwright HTML Report
-                publishHTML([
-                    reportDir: "${PLAYWRIGHT_REPORT_PATH}",
-                    reportFiles: 'index.html',
-                    reportName: 'Playwright Test Report',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
-                
-                // Publish Allure Report if available
-                script {
-                    if (fileExists('allure-report/index.html')) {
-                        publishHTML([
-                            reportDir: 'allure-report',
-                            reportFiles: 'index.html',
-                            reportName: 'Allure Test Report',
-                            keepAll: true,
-                            alwaysLinkToLastBuild: true
-                        ])
-                    }
-                }
-                
-                script {
-                    echo "✅ Reports published successfully"
-                }
-            }
-        }
-
-          post {
-                always {
-                    allure([
-                        results: [[path: 'allure-results']] // Path to your Allure results directory
-                    ])
-                }
-            }
-
-        // ====================================================================
-        // Stage 8: Publish JUnit Results
+        // Stage 7: Publish Allure Results
         // ====================================================================
         stage('📋 Publish Test Results') {
             steps {
                 script {
-                    echo "Publishing JUnit test results..."
+                    echo "Publishing Allure test results..."
+                }
+            
+                script {
+                    allure([
+                        includeProperties: false,
+                        jdk: '',
+                        properties: [],
+                        reportBuildPolicy: 'ALWAYS',
+                        results: [[path: 'allure-results']]
+                    ])
                 }
                 
-                junit(
-                    testResults: 'test-results/**/*.xml',
-                    allowEmptyResults: true,
-                    healthScaleFactor: 0.0
-                )
-                
                 script {
-                    echo "✅ JUnit results published"
+                    echo "✅ Allure results published"
                 }
             }
         }
