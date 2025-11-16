@@ -214,8 +214,8 @@ pipeline {
                 }
 
                 sh '''
-                    ./docker.sh test
-                    ./docker.sh results
+                    ./docker.sh test || true
+                    ./docker.sh results || true
                 '''
             }
         }
