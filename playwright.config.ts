@@ -58,12 +58,12 @@ const config: PlaywrightTestConfig = {
     //   name: 'webkit',
     //   use: { ...devices['Desktop Safari'] },
     // },
-    // {
-    //   name: 'Desktop Chromium',
-    //   use: {
-    //     browserName: 'chromium',
-    //   },
-    // },
+    {
+      name: 'Desktop Chromium',
+      use: {
+        browserName: 'chromium',
+      },
+    },
     // {
     //   name: 'Desktop Safari',
     //   use: {
