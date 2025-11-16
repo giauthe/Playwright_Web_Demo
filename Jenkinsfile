@@ -170,28 +170,28 @@ pipeline {
         // Stage 3: Setup Environment & Dependencies
         // ====================================================================
 
-        stage('Docker Build') {
-            steps{
-                script {
-                    echo "╔════════════════════════════════════════════════╗"
-                    echo "║  Stage: Setup Environment & Install Dependencies ║"
-                    echo "╚════════════════════════════════════════════════╝"
-                    echo ""
-                }
+        // stage('Docker Build') {
+        //     steps{
+        //         script {
+        //             echo "╔════════════════════════════════════════════════╗"
+        //             echo "║  Stage: Setup Environment & Install Dependencies ║"
+        //             echo "╚════════════════════════════════════════════════╝"
+        //             echo ""
+        //         }
 
-                sh '''
-                    echo "Node.js version:"
-                    ls -l
-                    echo WORKSPACE_PATH
-                    echo $PATH
-                    docker --version
+        //         sh '''
+        //             echo "Node.js version:"
+        //             ls -l
+        //             echo WORKSPACE_PATH
+        //             echo $PATH
+        //             docker --version
                 
-                    chmod +x ./docker.sh
-                    ./docker.sh build
-                    ./docker.sh run
-                '''
-            }
-        }
+        //             chmod +x ./docker.sh
+        //             ./docker.sh build
+        //             ./docker.sh run
+        //         '''
+        //     }
+        // }
 
         // ====================================================================
         // Stage 4: Run Playwright Tests
@@ -208,11 +208,14 @@ pipeline {
                     echo "Debug Mode: ${params.DEBUG_MODE}"
                     echo ""
                 }
-                
                 sh '''
-                    ./docker.sh test
-                    ./docker.sh results
+                    npx playwright test --browser=${BROWSER} --project=${TEST_SUITE} ${DEBUG_MODE:+--debug} --timeout=${TEST_TIMEOUT}000
                 '''
+                
+                // sh '''
+                //     ./docker.sh test
+                //     ./docker.sh results
+                // '''
             }
         }
 
