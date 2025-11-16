@@ -297,6 +297,7 @@ pipeline {
                     reportName: 'Playwright Test Report',
                     keepAll: true,
                     alwaysLinkToLastBuild: true
+                    allowMissing: true
                 ])
                 // Publish Allure Report
                 script {
