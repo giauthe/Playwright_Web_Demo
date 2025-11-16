@@ -29,11 +29,11 @@ launch() {
 }
 
 login() {
-    docker exec -i $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}") /bin/bash
+    docker exec -i $(docker ps --filter ancestor=${IMAGE_NAME} --format="{{.ID}}") /bin/bash
 }
 
 run_test() {
-    docker exec -i -w /automation $(docker ps -q --filter ancestor=${IMAGE_NAME} --format="{{.ID}}") bash -c ". /automation/run.sh"
+    docker exec -i -w /automation $(docker ps --filter ancestor=${IMAGE_NAME} --format="{{.ID}}") bash -c ". /automation/run.sh"
 }
 
 copy_results() {

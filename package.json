@@ -16,7 +16,9 @@
     "test_login_chrome": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Chromium' --headed",
     "test_pro_chrome": "npx playwright test tcProgram.spec.ts  --workers=1 --project='Desktop Chromium'",
     "test_login_ff": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Firefox'",
-    "test_login_safari": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Safari'"
+    "test_login_safari": "npx playwright test tcLogin.spec.ts  --workers=1 --project='Desktop Safari'",
+    "test_api": "npx playwright test test-suite/Login/API/api.spec.ts  --workers=1 --project='Desktop Chromium'",
+    "test_web": "npx playwright test test-suite/Login/API/tcLogin.spec.ts  --workers=1 --project='Desktop Chromium'"
   },
   "keywords": [],
   "author": "",

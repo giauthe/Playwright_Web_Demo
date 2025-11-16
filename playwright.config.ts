@@ -50,32 +50,32 @@ const config: PlaywrightTestConfig = {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'Desktop Chromium',
-      use: {
-        browserName: 'chromium',
-      },
-    },
-    {
-      name: 'Desktop Safari',
-      use: {
-        browserName: 'webkit',
-      }
-    },
-    {
-      name: 'Desktop Firefox',
-      use: {
-        browserName: 'firefox',
-      }
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
+    // {
+    //   name: 'Desktop Chromium',
+    //   use: {
+    //     browserName: 'chromium',
+    //   },
+    // },
+    // {
+    //   name: 'Desktop Safari',
+    //   use: {
+    //     browserName: 'webkit',
+    //   }
+    // },
+    // {
+    //   name: 'Desktop Firefox',
+    //   use: {
+    //     browserName: 'firefox',
+    //   }
+    // },
   ],
   reporter: [
     ['html'],

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-npm run test_role_chrome
+npm run test_api
