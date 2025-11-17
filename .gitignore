@@ -29,6 +29,7 @@ test-results
 /tests/installation/output/
 /tests/installation/.registry.json
 .cache/
+.github
 
 # Playwright
 /playwright-report/
